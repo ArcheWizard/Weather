@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, jsonify
-from config import WEATHER_KEY, GEO_KEY
+import os
+WEATHER_KEY = os.getenv("WEATHER_KEY")
+GEO_KEY = os.getenv("GEO_KEY")
 import requests
-import config
 
 app = Flask(__name__)
 
