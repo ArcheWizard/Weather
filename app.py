@@ -29,7 +29,7 @@ def get_weather(city):
 @app.route('/get-api-key', methods=['GET'])
 def get_geo_api_key():
     return jsonify({
-        'api_key': config.GEO_KEY
+        'api_key': GEO_KEY
     })
 
 
