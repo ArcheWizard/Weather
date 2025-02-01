@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-r from-blue-400 to-blue-600 min-h-screen flex flex-col items-center justify-center text-white">
+
+    <!-- Header -->
+    <header class="text-center mb-6">
+        <h1 class="text-4xl font-bold">Weather App</h1>
+    </header>
+
+    <!-- Search Bar + Error Message Container -->
+    <div class="bg-white p-4 rounded-xl shadow-md w-full max-w-md flex flex-col items-center">
+        <!-- Search Input + Button -->
+        <div class="flex w-full relative">
+            <input type="text" id="city" class="flex-grow p-2 text-black rounded-l-md focus:outline-none" placeholder="Enter city name">
+            
+            <button id="searchBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-md">Search</button>
+            
+            <!-- Autocomplete Suggestions List -->
+            <div id="autocomplete-list" class="absolute top-full left-0 w-full bg-white shadow-md mt-2 rounded-md hidden z-10">
+                <!-- Suggestions will be populated here -->
+            </div>
+        </div>
+        
+
+        <!-- Loading Spinner (Initially Hidden) -->
+        <div id="loading" class="hidden mt-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-t-4 border-blue-500 mx-auto"></div>
+        </div>
+
+        <!-- Error Message (Initially Hidden) -->
+        <div id="errorMessage" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-3 rounded-lg mt-4 w-full flex items-center">
+            <svg class="w-6 h-6 mr-2 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 20h.01M12 4h.01M4 12h.01M20 12h.01M6.343 6.343h.01M17.657 17.657h.01M6.343 17.657h.01M17.657 6.343h.01" />
+            </svg>
+            <span id="errorText">City not found. Please try again!</span>
+        </div>
+    </div>
+
+
+
+
+    <!-- Weather Display Section -->
+    <div id="weatherInfo" class="mt-6 w-full max-w-md text-center hidden">
+        <div class="bg-white p-6 rounded-xl shadow-md text-black space-y-4">
+            <h2 id="weatherCity" class="text-3xl font-semibold text-blue-800"></h2>
+            <img id="weatherIcon" class="mx-auto my-2" alt="Weather Icon">
+            <p id="weatherTemp" class="text-2xl font-bold text-gray-800"></p>
+            <p id="weatherDesc" class="text-lg text-gray-500"></p>
+    
+            <!-- New Weather Details -->
+            <div class="mt-4 grid grid-cols-2 gap-4 text-sm text-gray-600">
+                <p>Feels Like: <span id="feelsLike"></span>°C</p>
+                <p>Humidity: <span id="humidity"></span>%</p>
+                <p>Wind Speed: <span id="windSpeed"></span> m/s</p>
+                <p>Pressure: <span id="pressure"></span> hPa</p>
+            </div>
+        </div>
+    </div>    
+
+
+    <!-- Footer -->
+    <footer class="absolute bottom-4 text-sm">
+        <p>Powered by OpenWeather</p>
+    </footer>
+
+    <script>
+        document.getElementById('searchBtn').addEventListener('click', function() {
+            const city = document.getElementById('city').value.trim();
+            const weatherInfo = document.getElementById('weatherInfo');
+            const errorMessage = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            const loading = document.getElementById('loading');
+    
+            // Hide previous errors and weather info
+            errorMessage.classList.add('hidden');
+            weatherInfo.classList.add('hidden');
+            weatherInfo.style.opacity = 0;
+    
+            if (!city) {
+                errorText.textContent = "Please enter a city name!";
+                showError();
+                return;
+            }
+    
+            // Show loading spinner
+            loading.classList.remove('hidden');
+    
+            fetch(`/get-weather?city=${city}`)
+                .then(response => response.json())
+                .then(data => {
+                    loading.classList.add('hidden'); // Hide loading spinner
+    
+                    if (data.error) {
+                        errorText.textContent = "City not found. Please try again!";
+                        showError();
+                    } else {
+                        // Update weather details
+                        document.getElementById('weatherCity').textContent = data.city;
+                        document.getElementById('weatherIcon').src = `http://openweathermap.org/img/wn/${data.icon}@2x.png`;
+                        document.getElementById('weatherTemp').textContent = `Temperature: ${data.temperature}°C`;
+                        document.getElementById('weatherDesc').textContent = `Weather: ${data.weather}`;
+                        
+                        // Update new weather details
+                        document.getElementById('feelsLike').textContent = data.feels_like;
+                        document.getElementById('humidity').textContent = data.humidity;
+                        document.getElementById('windSpeed').textContent = data.wind_speed;
+                        document.getElementById('pressure').textContent = data.pressure;
+    
+                        // Fade in weather info
+                        weatherInfo.classList.remove('hidden');
+                        setTimeout(() => {
+                            weatherInfo.style.opacity = 1;
+                            weatherInfo.style.transition = "opacity 0.5s ease-in-out";
+                        }, 50);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching weather data:", error);
+                    loading.classList.add('hidden');
+                    errorText.textContent = "Something went wrong! Please try again later.";
+                    showError();
+                });
+        });
+    
+        function showError() {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.classList.remove('hidden');
+            errorMessage.style.opacity = 0;
+            setTimeout(() => {
+                errorMessage.style.opacity = 1;
+                errorMessage.style.transition = "opacity 0.5s ease-in-out";
+            }, 50);
+        }
+
+        let API_KEY = ''; // Initialize an empty string for the API key
+        let isApiKeyLoaded = false; // Flag to check if API key is loaded
+
+        // Fetch the API key from the Flask backend
+        fetch('/get-api-key')
+            .then(response => response.json())
+            .then(data => {
+                API_KEY = data.api_key; // Store the API key
+                isApiKeyLoaded = true; // Set the flag to true once the key is loaded
+            })
+            .catch(error => {
+                console.error('Error fetching API key:', error);
+            });
+        
+        let selectedIndex = -1; // Initialize the selected index globally
+
+        document.getElementById('city').addEventListener('keydown', function(event) {
+            const autocompleteList = document.getElementById('autocomplete-list');
+            const suggestions = autocompleteList.querySelectorAll('div');
+        
+            if (autocompleteList.classList.contains('hidden') || suggestions.length === 0) {
+                return; // Ignore if suggestions are hidden or no suggestions
+            }
+        
+            // Arrow down
+            if (event.key === 'ArrowDown') {
+                if (selectedIndex < suggestions.length - 1) {
+                    selectedIndex++;
+                } else {
+                    selectedIndex = 0; // Loop back to the first suggestion if on the last one
+                }
+            }
+            // Arrow up
+            if (event.key === 'ArrowUp') {
+                if (selectedIndex > 0) {
+                    selectedIndex--;
+                } else {
+                    selectedIndex = suggestions.length - 1; // Loop back to the last suggestion if on the first one
+                }
+            }
+        
+            // Enter
+            if (event.key === 'Enter' && selectedIndex >= 0) {
+                document.getElementById('city').value = suggestions[selectedIndex].textContent;
+                autocompleteList.classList.add('hidden'); // Hide suggestions after selection
+            }
+        
+            // Update the active suggestion
+            suggestions.forEach((suggestion, index) => {
+                if (index === selectedIndex) {
+                    suggestion.classList.add('bg-blue-100', 'text-blue-800'); // Highlight active suggestion
+                } else {
+                    suggestion.classList.remove('bg-blue-100', 'text-blue-800');
+                }
+            });
+        });
+        
+        // Optional: Ensure suggestions are hidden when clicking outside
+        document.addEventListener('click', function(event) {
+            const autocompleteList = document.getElementById('autocomplete-list');
+            const searchInput = document.getElementById('city');
+            
+            if (!searchInput.contains(event.target) && !autocompleteList.contains(event.target)) {
+                autocompleteList.classList.add('hidden');
+            }
+        });
+            
+        // Close suggestions when Escape key is pressed
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.getElementById('autocomplete-list').classList.add('hidden');
+            }
+        });
+
+            
+
+        document.getElementById('city').addEventListener('input', function() {
+            const query = this.value.trim();
+        
+            if (!isApiKeyLoaded) {
+                console.log("API Key not loaded yet");
+                return; // Don't proceed if the API key is not loaded
+            }
+        
+            if (query.length > 2) { // Only show suggestions if the input length is greater than 2
+                fetch(`https://api.opencagedata.com/geocode/v1/json?q=${query}&key=${API_KEY}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const autocompleteList = document.getElementById('autocomplete-list');
+                        autocompleteList.innerHTML = ''; // Clear previous suggestions
+        
+                        if (data.results.length > 0) {
+                            const maxSuggestions = 5; // Limit the number of suggestions
+                            const results = data.results.slice(0, maxSuggestions); // Get only the first 5 results
+        
+                            results.forEach(result => {
+                                const city = result.formatted; // Full address including city name
+                                const suggestion = document.createElement('div');
+                                suggestion.classList.add(
+                                    'p-2', 'cursor-pointer', 'hover:bg-blue-100', 'hover:text-blue-800', 'rounded-md', 'text-black'
+                                );
+                                suggestion.textContent = city;
+                                suggestion.addEventListener('click', () => {
+                                    document.getElementById('city').value = city; // Set input value to selected city
+                                    autocompleteList.innerHTML = ''; // Clear suggestions
+                                });
+                                autocompleteList.appendChild(suggestion);
+                            });
+        
+                            autocompleteList.classList.remove('hidden');
+                        } else {
+                            autocompleteList.classList.add('hidden');
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error fetching city suggestions:", error);
+                        document.getElementById('autocomplete-list').classList.add('hidden');
+                    });
+            } else {
+                document.getElementById('autocomplete-list').classList.add('hidden');
+            }
+        });
+            
+            
+
+
+    </script>
+
+</body>
+</html>
