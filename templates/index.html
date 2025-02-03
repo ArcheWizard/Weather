@@ -7,6 +7,55 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Add this to your CSS file */
+        body {
+            font-size: 16px;
+            margin: 20px;
+        }
+        
+        /* Make the header and footer responsive */
+        header, footer {
+            padding: 10px;
+            text-align: center;
+        }
+        
+        /* Make the search bar and weather info responsive */
+        #searchBar, #weatherInfo {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Adjust styles for medium screens */
+        @media (max-width: 768px) {
+            body {
+            font-size: 14px;
+            margin: 10px;
+            }
+            #searchBar, #weatherInfo {
+            max-width: 300px;
+            margin: 10px auto;
+            padding: 10px;
+            }
+        }
+        
+        /* Adjust styles for small screens */
+        @media (max-width: 480px) {
+            body {
+            font-size: 12px;
+            margin: 5px;
+            }
+            #searchBar, #weatherInfo {
+            max-width: 200px;
+            margin: 5px auto;
+            padding: 5px;
+            }
+        }
+    </style>
 </head>
 <body class="bg-gradient-to-r from-blue-400 to-blue-600 min-h-screen flex flex-col items-center justify-center text-white">
 
@@ -78,26 +127,26 @@
             const errorMessage = document.getElementById('errorMessage');
             const errorText = document.getElementById('errorText');
             const loading = document.getElementById('loading');
-    
+        
             // Hide previous errors and weather info
             errorMessage.classList.add('hidden');
             weatherInfo.classList.add('hidden');
             weatherInfo.style.opacity = 0;
-    
+        
             if (!city) {
                 errorText.textContent = "Please enter a city name!";
                 showError();
                 return;
             }
-    
+        
             // Show loading spinner
             loading.classList.remove('hidden');
-    
+        
             fetch(`/get-weather?city=${city}`)
                 .then(response => response.json())
                 .then(data => {
                     loading.classList.add('hidden'); // Hide loading spinner
-    
+        
                     if (data.error) {
                         errorText.textContent = "City not found. Please try again!";
                         showError();
@@ -113,7 +162,7 @@
                         document.getElementById('humidity').textContent = data.humidity;
                         document.getElementById('windSpeed').textContent = data.wind_speed;
                         document.getElementById('pressure').textContent = data.pressure;
-    
+        
                         // Fade in weather info
                         weatherInfo.classList.remove('hidden');
                         setTimeout(() => {
@@ -129,7 +178,7 @@
                     showError();
                 });
         });
-    
+        
         function showError() {
             const errorMessage = document.getElementById('errorMessage');
             errorMessage.classList.remove('hidden');
@@ -139,10 +188,10 @@
                 errorMessage.style.transition = "opacity 0.5s ease-in-out";
             }, 50);
         }
-
+        
         let API_KEY = ''; // Initialize an empty string for the API key
         let isApiKeyLoaded = false; // Flag to check if API key is loaded
-
+        
         // Fetch the API key from the Flask backend
         fetch('/get-api-key')
             .then(response => response.json())
@@ -155,7 +204,7 @@
             });
         
         let selectedIndex = -1; // Initialize the selected index globally
-
+        
         document.getElementById('city').addEventListener('keydown', function(event) {
             const autocompleteList = document.getElementById('autocomplete-list');
             const suggestions = autocompleteList.querySelectorAll('div');
@@ -213,9 +262,9 @@
                 document.getElementById('autocomplete-list').classList.add('hidden');
             }
         });
-
+        
             
-
+        
         document.getElementById('city').addEventListener('input', function() {
             const query = this.value.trim();
         
@@ -262,11 +311,7 @@
                 document.getElementById('autocomplete-list').classList.add('hidden');
             }
         });
-            
-            
-
-
+        
     </script>
-
 </body>
 </html>
